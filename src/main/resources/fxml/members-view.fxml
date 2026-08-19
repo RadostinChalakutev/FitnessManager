@@ -19,8 +19,16 @@
 
         <VBox spacing="25" styleClass="content">
 
-            <Label text="Add New Member"
-                   styleClass="page-title"/>
+            <HBox spacing="15" alignment="CENTER_LEFT">
+
+                <Button text="← Back"
+                        styleClass="secondary-button"
+                        onAction="#goBack"/>
+
+                <Label text="Add New Member"
+                       styleClass="page-title"/>
+
+            </HBox>
 
             <VBox spacing="20"
                   styleClass="card">

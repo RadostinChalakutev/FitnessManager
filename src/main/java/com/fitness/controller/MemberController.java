@@ -9,6 +9,14 @@ import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.TextField;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
+
+import java.io.IOException;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -188,5 +196,26 @@ public class MemberController {
                 "End date: "
                         + endDateField.getText()
         );
+    }
+    @FXML
+    private void goBack(ActionEvent event) throws IOException {
+
+        FXMLLoader loader =
+                new FXMLLoader(
+                        getClass().getResource("/fxml/main-view.fxml")
+                );
+
+        Parent root = loader.load();
+
+        Stage stage =
+                (Stage) ((Node) event.getSource())
+                        .getScene()
+                        .getWindow();
+
+        stage.setScene(
+                new Scene(root, 1000, 650)
+        );
+
+        stage.show();
     }
 }
