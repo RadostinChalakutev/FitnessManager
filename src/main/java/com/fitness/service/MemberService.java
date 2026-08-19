@@ -44,4 +44,37 @@ public class MemberService {
                 subscription.getId()
         );
     }
+
+    public void updateMember(
+            Member member,
+            Subscription subscription,
+            LocalDate startDate,
+            String paymentMethod) {
+
+        LocalDate endDate =
+                startDate.plusMonths(
+                        subscription.getDurationMonths()
+                );
+
+        member.setSubscription(
+                subscription.getName()
+        );
+
+        member.setStartDate(startDate);
+
+        member.setEndDate(endDate);
+
+        member.setPaymentMethod(
+                paymentMethod
+        );
+
+        member.setAmount(
+                subscription.getPrice()
+        );
+
+        memberRepository.update(
+                member,
+                subscription.getId()
+        );
+    }
 }

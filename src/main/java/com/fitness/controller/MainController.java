@@ -11,6 +11,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -123,6 +124,53 @@ public class MainController {
                 )
         );
 
+        editColumn.setCellFactory(column ->
+                new TableCell<>() {
+
+                    private final Button editButton =
+                            new Button("Edit");
+
+                    {
+                        editButton.setOnAction(event -> {
+
+                            Member member =
+                                    getTableView()
+                                            .getItems()
+                                            .get(getIndex());
+
+                            try {
+                                openEditMember(
+                                        member,
+                                        event
+                                );
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        });
+
+                        editButton.getStyleClass()
+                                .add("secondary-button");
+                    }
+
+                    @Override
+                    protected void updateItem(
+                            String item,
+                            boolean empty) {
+
+                        super.updateItem(
+                                item,
+                                empty
+                        );
+
+                        if (empty) {
+                            setGraphic(null);
+                        } else {
+                            setGraphic(editButton);
+                        }
+                    }
+                }
+        );
+
         configureSubscriptionColors();
         configureDaysRemainingColors();
 
@@ -220,10 +268,8 @@ public class MainController {
                         );
 
                         if (empty || subscription == null) {
-
                             setText(null);
                             setStyle("");
-
                             return;
                         }
 
@@ -281,23 +327,15 @@ public class MainController {
                         );
 
                         if (empty || days == null) {
-
                             setText(null);
                             setStyle("");
-
                             return;
                         }
 
                         setText(days);
 
-                        if (days.equals("Expired")) {
-
-                            setStyle(
-                                    "-fx-text-fill: #dc2626;"
-                                            + "-fx-font-weight: bold;"
-                            );
-
-                        } else if (days.equals("Today")) {
+                        if (days.equals("Expired")
+                                || days.equals("Today")) {
 
                             setStyle(
                                     "-fx-text-fill: #dc2626;"
@@ -339,7 +377,6 @@ public class MainController {
                                 }
 
                             } catch (NumberFormatException ignored) {
-
                                 setStyle("");
                             }
                         }
@@ -360,6 +397,36 @@ public class MainController {
                 );
 
         Parent root = loader.load();
+
+        Stage stage =
+                (Stage) ((Node) event.getSource())
+                        .getScene()
+                        .getWindow();
+
+        stage.setScene(
+                new Scene(root, 1000, 650)
+        );
+
+        stage.show();
+    }
+
+    private void openEditMember(
+            Member member,
+            ActionEvent event) throws IOException {
+
+        FXMLLoader loader =
+                new FXMLLoader(
+                        getClass().getResource(
+                                "/fxml/members-view.fxml"
+                        )
+                );
+
+        Parent root = loader.load();
+
+        MemberController controller =
+                loader.getController();
+
+        controller.setMemberForEdit(member);
 
         Stage stage =
                 (Stage) ((Node) event.getSource())

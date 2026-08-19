@@ -91,4 +91,42 @@ public class MemberRepository {
 
         return members;
     }
+    public void update(Member member, int subscriptionId) {
+
+        String sql = """
+            UPDATE members
+            SET first_name = ?,
+                last_name = ?,
+                phone = ?,
+                egn = ?,
+                email = ?,
+                subscription_id = ?,
+                start_date = ?,
+                end_date = ?,
+                payment_method = ?,
+                amount = ?
+            WHERE id = ?
+            """;
+
+        try (Connection connection = DatabaseConnection.connect();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+
+            statement.setString(1, member.getFirstName());
+            statement.setString(2, member.getLastName());
+            statement.setString(3, member.getPhone());
+            statement.setString(4, member.getEgn());
+            statement.setString(5, member.getEmail());
+            statement.setInt(6, subscriptionId);
+            statement.setString(7, member.getStartDate().toString());
+            statement.setString(8, member.getEndDate().toString());
+            statement.setString(9, member.getPaymentMethod());
+            statement.setDouble(10, member.getAmount());
+            statement.setInt(11, member.getId());
+
+            statement.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }

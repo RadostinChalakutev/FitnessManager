@@ -1,7 +1,8 @@
 package com.fitness.controller;
 
-import com.fitness.model.Subscription;
 import com.fitness.database.SubscriptionRepository;
+import com.fitness.model.Member;
+import com.fitness.model.Subscription;
 import com.fitness.service.MemberService;
 
 import javafx.collections.FXCollections;
@@ -11,9 +12,11 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
@@ -51,11 +54,19 @@ public class MemberController {
     @FXML
     private ComboBox<String> paymentMethodComboBox;
 
+    @FXML
+    private Label formTitle;
+
+    @FXML
+    private Button saveButton;
+
     private final SubscriptionRepository subscriptionRepository =
             new SubscriptionRepository();
 
     private final MemberService memberService =
             new MemberService();
+
+    private Member memberBeingEdited;
 
     @FXML
     public void initialize() {
@@ -64,9 +75,13 @@ public class MemberController {
         loadPaymentMethods();
         configureStartDatePicker();
 
-        subscriptionComboBox.setOnAction(event -> calculateEndDate());
+        subscriptionComboBox.setOnAction(
+                event -> calculateEndDate()
+        );
 
-        startDatePicker.setOnAction(event -> calculateEndDate());
+        startDatePicker.setOnAction(
+                event -> calculateEndDate()
+        );
     }
 
     private void loadSubscriptions() {
@@ -75,7 +90,9 @@ public class MemberController {
                 subscriptionRepository.findAll();
 
         subscriptionComboBox.setItems(
-                FXCollections.observableArrayList(subscriptions)
+                FXCollections.observableArrayList(
+                        subscriptions
+                )
         );
 
         subscriptionComboBox.setCellFactory(listView ->
@@ -86,7 +103,10 @@ public class MemberController {
                             Subscription subscription,
                             boolean empty) {
 
-                        super.updateItem(subscription, empty);
+                        super.updateItem(
+                                subscription,
+                                empty
+                        );
 
                         if (empty || subscription == null) {
                             setText(null);
@@ -113,12 +133,17 @@ public class MemberController {
                             Subscription subscription,
                             boolean empty) {
 
-                        super.updateItem(subscription, empty);
+                        super.updateItem(
+                                subscription,
+                                empty
+                        );
 
                         if (empty || subscription == null) {
                             setText(null);
                         } else {
-                            setText(subscription.getName());
+                            setText(
+                                    subscription.getName()
+                            );
                         }
                     }
                 }
@@ -141,21 +166,25 @@ public class MemberController {
 
         startDatePicker.setValue(today);
 
-        startDatePicker.setDayCellFactory(datePicker ->
-                new DateCell() {
+        startDatePicker.setDayCellFactory(
+                datePicker ->
+                        new DateCell() {
 
-                    @Override
-                    public void updateItem(
-                            LocalDate date,
-                            boolean empty) {
+                            @Override
+                            public void updateItem(
+                                    LocalDate date,
+                                    boolean empty) {
 
-                        super.updateItem(date, empty);
+                                super.updateItem(
+                                        date,
+                                        empty
+                                );
 
-                        if (date.isBefore(today)) {
-                            setDisable(true);
+                                if (date.isBefore(today)) {
+                                    setDisable(true);
+                                }
+                            }
                         }
-                    }
-                }
         );
 
         calculateEndDate();
@@ -166,11 +195,11 @@ public class MemberController {
         LocalDate startDate =
                 startDatePicker.getValue();
 
-        Subscription selectedSubscription =
+        Subscription subscription =
                 subscriptionComboBox.getValue();
 
         if (startDate == null ||
-                selectedSubscription == null) {
+                subscription == null) {
 
             endDateField.clear();
 
@@ -179,7 +208,7 @@ public class MemberController {
 
         LocalDate endDate =
                 startDate.plusMonths(
-                        selectedSubscription.getDurationMonths()
+                        subscription.getDurationMonths()
                 );
 
         endDateField.setText(
@@ -187,10 +216,69 @@ public class MemberController {
         );
     }
 
-    @FXML
-    private void saveMember(ActionEvent event) throws IOException {
+    public void setMemberForEdit(Member member) {
 
-        Subscription selectedSubscription =
+        this.memberBeingEdited = member;
+
+        firstNameField.setText(
+                member.getFirstName()
+        );
+
+        lastNameField.setText(
+                member.getLastName()
+        );
+
+        phoneField.setText(
+                member.getPhone()
+        );
+
+        egnField.setText(
+                member.getEgn()
+        );
+
+        emailField.setText(
+                member.getEmail()
+        );
+
+        startDatePicker.setValue(
+                member.getStartDate()
+        );
+
+        paymentMethodComboBox.setValue(
+                member.getPaymentMethod()
+        );
+
+        for (Subscription subscription :
+                subscriptionComboBox.getItems()) {
+
+            if (subscription.getName().equals(
+                    member.getSubscription()
+            )) {
+
+                subscriptionComboBox.setValue(
+                        subscription
+                );
+
+                break;
+            }
+        }
+
+        calculateEndDate();
+
+        if (formTitle != null) {
+            formTitle.setText("Edit Member");
+        }
+
+        if (saveButton != null) {
+            saveButton.setText("Update Member");
+        }
+    }
+
+    @FXML
+    private void saveMember(ActionEvent event)
+            throws IOException {
+
+        Subscription subscription =
                 subscriptionComboBox.getValue();
 
         LocalDate startDate =
@@ -204,7 +292,7 @@ public class MemberController {
                 || phoneField.getText().isBlank()
                 || egnField.getText().isBlank()
                 || emailField.getText().isBlank()
-                || selectedSubscription == null
+                || subscription == null
                 || startDate == null
                 || paymentMethod == null) {
 
@@ -215,20 +303,56 @@ public class MemberController {
             return;
         }
 
-        memberService.saveMember(
-                firstNameField.getText(),
-                lastNameField.getText(),
-                phoneField.getText(),
-                egnField.getText(),
-                emailField.getText(),
-                selectedSubscription,
-                startDate,
-                paymentMethod
-        );
+        if (memberBeingEdited == null) {
 
-        System.out.println(
-                "Member saved successfully."
-        );
+            memberService.saveMember(
+                    firstNameField.getText(),
+                    lastNameField.getText(),
+                    phoneField.getText(),
+                    egnField.getText(),
+                    emailField.getText(),
+                    subscription,
+                    startDate,
+                    paymentMethod
+            );
+
+            System.out.println(
+                    "Member saved successfully."
+            );
+
+        } else {
+
+            memberBeingEdited.setFirstName(
+                    firstNameField.getText()
+            );
+
+            memberBeingEdited.setLastName(
+                    lastNameField.getText()
+            );
+
+            memberBeingEdited.setPhone(
+                    phoneField.getText()
+            );
+
+            memberBeingEdited.setEgn(
+                    egnField.getText()
+            );
+
+            memberBeingEdited.setEmail(
+                    emailField.getText()
+            );
+
+            memberService.updateMember(
+                    memberBeingEdited,
+                    subscription,
+                    startDate,
+                    paymentMethod
+            );
+
+            System.out.println(
+                    "Member updated successfully."
+            );
+        }
 
         goToDashboard(event);
     }
