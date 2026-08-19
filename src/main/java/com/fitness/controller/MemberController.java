@@ -247,6 +247,8 @@ public class MemberController {
         paymentMethodComboBox.setValue(
                 member.getPaymentMethod()
         );
+        subscriptionComboBox.setDisable(true);
+        paymentMethodComboBox.setDisable(true);
 
         for (Subscription subscription :
                 subscriptionComboBox.getItems()) {
@@ -343,10 +345,7 @@ public class MemberController {
             );
 
             memberService.updateMember(
-                    memberBeingEdited,
-                    subscription,
-                    startDate,
-                    paymentMethod
+                    memberBeingEdited
             );
 
             System.out.println(

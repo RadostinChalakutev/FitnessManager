@@ -4,12 +4,19 @@ import com.fitness.database.MemberRepository;
 import com.fitness.model.Member;
 import com.fitness.model.Subscription;
 
+import java.security.SecureRandom;
 import java.time.LocalDate;
+import java.util.Base64;
 
 public class MemberService {
 
     private final MemberRepository memberRepository =
             new MemberRepository();
+
+    private final SecureRandom secureRandom =
+            new SecureRandom();
+    private final EmailService emailService =
+            new EmailService();
 
     public void saveMember(
             String firstName,
@@ -39,42 +46,37 @@ public class MemberService {
                 subscription.getPrice()
         );
 
+        String verificationToken =
+                generateVerificationToken();
+
+        member.setVerificationToken(
+                verificationToken
+        );
+
         memberRepository.save(
                 member,
                 subscription.getId()
         );
+        emailService.sendVerificationEmail(
+                member.getEmail(),
+                member.getFirstName(),
+                member.getVerificationToken()
+        );
     }
 
-    public void updateMember(
-            Member member,
-            Subscription subscription,
-            LocalDate startDate,
-            String paymentMethod) {
+    public void updateMember(Member member) {
 
-        LocalDate endDate =
-                startDate.plusMonths(
-                        subscription.getDurationMonths()
-                );
+        memberRepository.updatePersonalData(member);
+    }
 
-        member.setSubscription(
-                subscription.getName()
-        );
+    private String generateVerificationToken() {
 
-        member.setStartDate(startDate);
+        byte[] randomBytes = new byte[32];
 
-        member.setEndDate(endDate);
+        secureRandom.nextBytes(randomBytes);
 
-        member.setPaymentMethod(
-                paymentMethod
-        );
-
-        member.setAmount(
-                subscription.getPrice()
-        );
-
-        memberRepository.update(
-                member,
-                subscription.getId()
-        );
+        return Base64.getUrlEncoder()
+                .withoutPadding()
+                .encodeToString(randomBytes);
     }
 }

@@ -11,6 +11,7 @@ public class Member {
     private String egn;
     private String email;
     private boolean emailVerified;
+    private String verificationToken;
 
     private String subscription;
     private LocalDate startDate;
@@ -61,7 +62,13 @@ public class Member {
     public void setFirstName(String firstName) {
         this.firstName = firstName;
     }
+    public String getVerificationToken() {
+        return verificationToken;
+    }
 
+    public void setVerificationToken(String verificationToken) {
+        this.verificationToken = verificationToken;
+    }
     public String getLastName() {
         return lastName;
     }
