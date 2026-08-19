@@ -1,23 +1,24 @@
 package com.fitness.controller;
 
-import com.fitness.database.SubscriptionRepository;
 import com.fitness.model.Subscription;
+import com.fitness.database.SubscriptionRepository;
+import com.fitness.service.MemberService;
+
 import javafx.collections.FXCollections;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.TextField;
-import javafx.event.ActionEvent;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-
 import java.time.LocalDate;
 import java.util.List;
 
@@ -53,6 +54,9 @@ public class MemberController {
     private final SubscriptionRepository subscriptionRepository =
             new SubscriptionRepository();
 
+    private final MemberService memberService =
+            new MemberService();
+
     @FXML
     public void initialize() {
 
@@ -61,6 +65,7 @@ public class MemberController {
         configureStartDatePicker();
 
         subscriptionComboBox.setOnAction(event -> calculateEndDate());
+
         startDatePicker.setOnAction(event -> calculateEndDate());
     }
 
@@ -137,7 +142,6 @@ public class MemberController {
         startDatePicker.setValue(today);
 
         startDatePicker.setDayCellFactory(datePicker ->
-
                 new DateCell() {
 
                     @Override
@@ -169,6 +173,7 @@ public class MemberController {
                 selectedSubscription == null) {
 
             endDateField.clear();
+
             return;
         }
 
@@ -183,26 +188,66 @@ public class MemberController {
     }
 
     @FXML
-    private void saveMember() {
+    private void saveMember(ActionEvent event) throws IOException {
 
-        System.out.println("SAVE MEMBER");
+        Subscription selectedSubscription =
+                subscriptionComboBox.getValue();
 
-        System.out.println(
-                "Start date: "
-                        + startDatePicker.getValue()
+        LocalDate startDate =
+                startDatePicker.getValue();
+
+        String paymentMethod =
+                paymentMethodComboBox.getValue();
+
+        if (firstNameField.getText().isBlank()
+                || lastNameField.getText().isBlank()
+                || phoneField.getText().isBlank()
+                || egnField.getText().isBlank()
+                || emailField.getText().isBlank()
+                || selectedSubscription == null
+                || startDate == null
+                || paymentMethod == null) {
+
+            System.out.println(
+                    "Please fill in all fields."
+            );
+
+            return;
+        }
+
+        memberService.saveMember(
+                firstNameField.getText(),
+                lastNameField.getText(),
+                phoneField.getText(),
+                egnField.getText(),
+                emailField.getText(),
+                selectedSubscription,
+                startDate,
+                paymentMethod
         );
 
         System.out.println(
-                "End date: "
-                        + endDateField.getText()
+                "Member saved successfully."
         );
+
+        goToDashboard(event);
     }
+
     @FXML
-    private void goBack(ActionEvent event) throws IOException {
+    private void goBack(ActionEvent event)
+            throws IOException {
+
+        goToDashboard(event);
+    }
+
+    private void goToDashboard(ActionEvent event)
+            throws IOException {
 
         FXMLLoader loader =
                 new FXMLLoader(
-                        getClass().getResource("/fxml/main-view.fxml")
+                        getClass().getResource(
+                                "/fxml/main-view.fxml"
+                        )
                 );
 
         Parent root = loader.load();
